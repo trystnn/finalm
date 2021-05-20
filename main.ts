@@ -4,6 +4,11 @@ namespace SpriteKind {
 sprites.onCreated(SpriteKind.Enemy, function (sprite) {
     sprite.setImage(assets.image`Grunt`)
 })
+scene.onOverlapTile(SpriteKind.Player, sprites.dungeon.stairNorth, function (sprite, location) {
+    if (info.score() == 130) {
+        tiles.setTilemap(tilemap`level4`)
+    }
+})
 controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
     projectile = sprites.createProjectileFromSprite(img`
         ................................
@@ -41,16 +46,27 @@ controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
         `, ninja, 100, 0)
     pause(1000)
 })
-controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
-    ninja.vy = -50
-})
-scene.onOverlapTile(SpriteKind.Player, sprites.dungeon.doorClosedNorth, function (sprite, location) {
+scene.onOverlapTile(SpriteKind.Player, sprites.builtin.oceanDepths8, function (sprite, location) {
     if (info.player1.score() == 30) {
         tiles.setWallAt(tiles.getTileLocation(64, 6), false)
     } else {
         game.splash("Clear the enemies first.")
         pause(700)
     }
+})
+controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
+    ninja.vy = -100
+})
+sprites.onOverlap(SpriteKind.Projectile, SpriteKind.minib, function (sprite, otherSprite) {
+    sprite.destroy()
+    otherSprite.follow(ninja, 25)
+    info.player2.changeLifeBy(-1)
+    info.changeScoreBy(20)
+    pause(1000)
+})
+scene.onOverlapTile(SpriteKind.Player, sprites.dungeon.doorClosedNorth, function (sprite, location) {
+    miniboss.setVelocity(50, 50)
+    miniboss.follow(ninja, 20)
 })
 scene.onOverlapTile(SpriteKind.Player, sprites.builtin.forestTiles10, function (sprite, location) {
     tiles.setWallAt(tiles.getTileLocation(64, 6), true)
@@ -61,133 +77,69 @@ scene.onOverlapTile(SpriteKind.Player, sprites.dungeon.hazardLava1, function (sp
 info.onLifeZero(function () {
     game.over(false)
 })
-scene.onOverlapTile(SpriteKind.Player, sprites.builtin.forestTiles14, function (sprite, location) {
-    tiles.setWallAt(tiles.getTileLocation(68, 2), true)
-    tiles.setWallAt(tiles.getTileLocation(68, 3), true)
-    tiles.setWallAt(tiles.getTileLocation(68, 4), true)
-    tiles.setWallAt(tiles.getTileLocation(68, 5), true)
-    tiles.setWallAt(tiles.getTileLocation(68, 6), true)
+sprites.onOverlap(SpriteKind.Player, SpriteKind.minib, function (sprite, otherSprite) {
+    info.changeLifeBy(-1)
+    pause(1000)
 })
-sprites.onCreated(SpriteKind.minib, function (sprite) {
-    let miniboss: Sprite = null
-    miniboss.setImage(img`
-        ................................................................
-        ................................................................
-        ................................................................
-        ................................................................
-        ................................................................
-        ................................................................
-        ................................................................
-        ................................................................
-        ................................................................
-        ...............eef...........................fee................
-        ...............effeee.....................eeeffe................
-        ..............effeeff.....................ffeeffe...............
-        ..............eeeeffeefee.............eefeeffeeee...............
-        ..............eeeeeeeffee.............eeffeeeeeee...............
-        ..............eeeeeeffeee.............eeeffeeeeee...............
-        ...............eeeeeeee......eeeee......eeeeeeee................
-        ................eeeeee......eeeeeee......eeeeee.................
-        ..................eeeee.....ee1e1ee.....eeeee...................
-        ..................eeeeee....eeeeeee....eeeeee...................
-        ..................eeeeee....ee222ee....eeeeee...................
-        ...................eeeeee...e2ded2e...eeeeee....................
-        ...................eeeeeeeeee2ede2eeeeeeeeee....................
-        ....................eeeeeeeeee222eeeeeeeeee.....................
-        .....................eeeeeeeeeeeeeeeeeeeee......................
-        ........................eeeeeeeeeeeeeee.........................
-        ..........................eeeeeeeeeee...........................
-        ..........................eeeeeeeeeee...........................
-        ..........................eeeeeeeeeee...........................
-        ..........................eeeeeeeeeee...........................
-        ........................eeeeeeeeeeeeeee.........................
-        .....................eeeeeeeeeeeeeeeeeeeee......................
-        ..................eeeeeeeeeeeeeeeeeeeeeeeeeee...................
-        ................eeeeeeeeeeeeeeeeeeeeeeeeeeeeeee.................
-        ...............eeeeeeeee..eeeeeeeeeee..eeeeeeeee................
-        ...............eeeeeee....fffff8fffff....eeeeeee................
-        ..............eeeeeee.....fffffffffff.....eeeeeee...............
-        ..............effeeefe....ffeffffffff....efeeeffe...............
-        ..............ffeeeeff...fffeffffeffff...ffeeeeff...............
-        ..............eeefeeee...fffeff.ffffff...eeeefeee...............
-        ...............efeefe....ffffff.ffffff....efeefe................
-        .........................ffffff.fffeff..........................
-        ........................fffffff.fffefff.........................
-        ........................ffeeff...ffffff.........................
-        ........................ffefff...ffffff.........................
-        ........................fefff.....ffeff.........................
-        .......................ffffff.....ffffff........................
-        .......................ffffff.....ffffff........................
-        .......................ffffff.....ffffff........................
-        .......................ffffff.....ffffff........................
-        .....................eeefffee......fffffee......................
-        ....................eeeeeeeeee....eeeffeeee.....................
-        ...................eeeeeeeeeee....eeeeeeeeee....................
-        ....................eeeeeeeeee....eeeeeeeee.....................
-        ................................................................
-        ................................................................
-        ................................................................
-        ................................................................
-        ................................................................
-        ................................................................
-        ................................................................
-        ................................................................
-        ................................................................
-        ................................................................
-        ................................................................
-        `)
+info.player2.onLifeZero(function () {
+    miniboss.destroy(effects.disintegrate, 1000)
 })
 scene.onOverlapTile(SpriteKind.Player, sprites.castle.rock2, function (sprite, location) {
     if (info.player1.score() == 10) {
         tiles.setTilemap(tilemap`level2`)
         tiles.placeOnTile(ninja, tiles.getTileLocation(1, 6))
+        grunt2 = sprites.create(img`
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            `, SpriteKind.Enemy)
+        tiles.placeOnTile(grunt2, tiles.getTileLocation(12, 4))
+        grunt2.vy = 50
+        grunt2.setBounceOnWall(true)
+        grunt3 = sprites.create(img`
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            `, SpriteKind.Enemy)
+        grunt3.setBounceOnWall(true)
+        grunt3.vy = 50
+        tiles.placeOnTile(grunt3, tiles.getTileLocation(27, 6))
+        grunt3.setBounceOnWall(false)
     } else {
         game.splash("Clear the enemies first.")
         pause(700)
     }
+})
+scene.onOverlapTile(SpriteKind.Player, sprites.dungeon.doorOpenNorth, function (sprite, location) {
+    miniboss = sprites.create(assets.image`Minib`, SpriteKind.minib)
+    tiles.placeOnTile(miniboss, tiles.getTileLocation(77, 5))
     info.player2.setLife(5)
-    grunt2 = sprites.create(img`
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        `, SpriteKind.Enemy)
-    tiles.placeOnTile(grunt2, tiles.getTileLocation(12, 4))
-    grunt2.vy = 50
-    grunt2.setBounceOnWall(true)
-    grunt3 = sprites.create(img`
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        `, SpriteKind.Enemy)
-    grunt3.vy = 50
-    tiles.placeOnTile(grunt3, tiles.getTileLocation(27, 6))
-    grunt3.setBounceOnWall(false)
 })
 sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function (sprite, otherSprite) {
     info.changeScoreBy(10)
@@ -201,6 +153,7 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function (sprite, otherSp
 })
 let grunt3: Sprite = null
 let grunt2: Sprite = null
+let miniboss: Sprite = null
 let projectile: Sprite = null
 let ninja: Sprite = null
 tiles.setTilemap(tilemap`level1`)
@@ -335,5 +288,5 @@ let grunt = sprites.create(assets.image`Grunt`, SpriteKind.Enemy)
 tiles.placeOnTile(grunt, tiles.getTileLocation(17, 6))
 grunt.setBounceOnWall(true)
 grunt.ay = 50
-grunt.vx = -25
+grunt.vx = -50
 info.setLife(5)
