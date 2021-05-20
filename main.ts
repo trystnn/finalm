@@ -59,14 +59,14 @@ controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
 })
 sprites.onOverlap(SpriteKind.Projectile, SpriteKind.minib, function (sprite, otherSprite) {
     sprite.destroy()
-    otherSprite.follow(ninja, 25)
+    otherSprite.follow(ninja, 40)
     info.player2.changeLifeBy(-1)
     info.changeScoreBy(20)
     pause(1000)
 })
 scene.onOverlapTile(SpriteKind.Player, sprites.dungeon.doorClosedNorth, function (sprite, location) {
     miniboss.setVelocity(50, 50)
-    miniboss.follow(ninja, 20)
+    miniboss.follow(ninja, 30)
 })
 scene.onOverlapTile(SpriteKind.Player, sprites.builtin.forestTiles10, function (sprite, location) {
     tiles.setWallAt(tiles.getTileLocation(64, 6), true)
@@ -156,6 +156,8 @@ let grunt2: Sprite = null
 let miniboss: Sprite = null
 let projectile: Sprite = null
 let ninja: Sprite = null
+game.splash("Move with WASD.", "Fire with B and jump with A")
+game.splash("Clear the enemies.")
 tiles.setTilemap(tilemap`level1`)
 scene.setBackgroundImage(img`
     ................................................................................................................................................................
